@@ -39,6 +39,5 @@ add_executable(paddle_encrypt_tool
         util/crypto/base64_utils.cpp)
 
 target_link_libraries(paddle_encrypt_tool
-        ${OPENSSL_LIBS}
-        )
+        ${OPENSSL_LIBS} -ldl -lpthread)
 

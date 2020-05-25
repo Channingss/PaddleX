@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "paddle/paddle_inference_api.h"
+#include "paddle_inference_api.h"
 
 #ifndef PADDLE_MODEL_PROTECT_API_PADDLE_MODEL_DECRYPT_H
 #define PADDLE_MODEL_PROTECT_API_PADDLE_MODEL_DECRYPT_H

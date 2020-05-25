@@ -3,8 +3,8 @@ project(paddle_model_protect)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_C_FLAGS "-g -O2 -fPIC -lpthread -ldl -Wl,--version-script ${CMAKE_CURRENT_SOURCE_DIR}/export_rule.map ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "-g -O2 -fPIC -lpthread -ldl -Wl,--version-script ${CMAKE_CURRENT_SOURCE_DIR}/export_rule.map ${CMAKE_CXX_FLAGS}")
+set(CMAKE_C_FLAGS  "-g -O2 -fPIC -lpthread -dl -Wl,--version-script ${CMAKE_CURRENT_SOURCE_DIR}/export_rule.map ${CMAKE_C_FLAGS}" )
+set(CMAKE_CXX_FLAGS  "-g -O2 -fPIC -lpthread -dl -Wl,--version-script ${CMAKE_CURRENT_SOURCE_DIR}/export_rule.map ${CMAKE_CXX_FLAGS}" )
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/output/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/output/lib)

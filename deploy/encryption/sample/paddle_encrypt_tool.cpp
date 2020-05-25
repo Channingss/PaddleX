@@ -2,7 +2,7 @@
 #include <cstring>
 #include "model_code.h"
 #include "paddle_model_encrypt.h"
-#include "paddle/paddle_inference_api.h"
+#include "paddle_inference_api.h"
 
 #define RESET           "\033[0m"
 #define BOLD            "\033[1m"
