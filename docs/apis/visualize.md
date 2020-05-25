@@ -5,7 +5,7 @@ PaddleX提供了一系列模型预测和结果分析的可视化函数。
 ```
 paddlex.det.visualize(image, result, threshold=0.5, save_dir='./')
 ```
-将目标检测/实例分割模型预测得到的Box框和Mask在原图上进行可视化
+将目标检测/实例分割模型预测得到的Box框和Mask在原图上进行可视化。
 
 ### 参数
 > * **image** (str): 原图文件路径。  
@@ -77,7 +77,7 @@ pdx.det.draw_pr_curve(gt=gt, pred_bbox=bbox, save_dir='./insect')
 ```
 paddlex.seg.visualize(image, result, weight=0.6, save_dir='./')
 ```
-将语义分割模型预测得到的Mask在原图上进行可视化
+将语义分割模型预测得到的Mask在原图上进行可视化。
 
 ### 参数
 > * **image** (str): 原图文件路径。  
@@ -99,11 +99,11 @@ pdx.det.visualize('city.png', result, save_dir='./')
 ```
 paddlex.slim.visualize(model, sensitivities_file)
 ```
-利用此接口，可以分析在不同的`eval_metric_loss`参数下，模型被裁剪的比例情况。可视化结果纵轴为eval_metric_loss参数值，横轴为对应的模型被裁剪的比例
+利用此接口，可以分析在不同的`eval_metric_loss`参数下，模型被裁剪的比例情况。可视化结果纵轴为eval_metric_loss参数值，横轴为对应的模型被裁剪的比例。
 
 ### 参数
->* **model**: 使用PaddleX加载的模型
->* **sensitivities_file**: 模型各参数在验证集上计算得到的参数敏感度信息文件
+>* **model** (paddlex.cv.models): 使用PaddleX加载的模型。
+>* **sensitivities_file** (str): 模型各参数在验证集上计算得到的参数敏感度信息文件。
 
 ### 使用示例
 > 点击下载示例中的[模型](https://bj.bcebos.com/paddlex/models/vegetables_mobilenet.tar.gz)和[sensitivities_file](https://bj.bcebos.com/paddlex/slim_prune/mobilenetv2.sensitivities)
@@ -113,3 +113,55 @@ model = pdx.load_model('vegetables_mobilenet')
 pdx.slim.visualize(model, 'mobilenetv2.sensitivities', save_dir='./')
 # 可视化结果保存在./sensitivities.png
 ```
+
+## LIME可解释性结果可视化
+```
+paddlex.interpret.lime(img_file, 
+                       model, 
+                       num_samples=3000, 
+                       batch_size=50,
+                       save_dir='./')
+```
+使用LIME算法将模型预测结果的可解释性可视化。  
+LIME表示与模型无关的局部可解释性，可以解释任何模型。LIME的思想是以输入样本为中心，在其附近的空间中进行随机采样，每个采样通过原模型得到新的输出，这样得到一系列的输入和对应的输出，LIME用一个简单的、可解释的模型（比如线性回归模型）来拟合这个映射关系，得到每个输入维度的权重，以此来解释模型。    
+
+**注意：** 可解释性结果可视化目前只支持分类模型。
+
+### 参数
+>* **img_file** (str): 预测图像路径。
+>* **model** (paddlex.cv.models): paddlex中的模型。
+>* **num_samples** (int): LIME用于学习线性模型的采样数，默认为3000。
+>* **batch_size** (int): 预测数据batch大小，默认为50。
+>* **save_dir** (str): 可解释性可视化结果（保存为png格式文件）和中间文件存储路径。 
+
+
+### 使用示例
+> 对预测可解释性结果可视化的过程可参见[代码](https://github.com/PaddlePaddle/PaddleX/blob/develop/tutorials/interpret/lime.py)。
+
+
+## NormLIME可解释性结果可视化
+```
+paddlex.interpret.normlime(img_file, 
+                           model, 
+                           dataset=None,
+                           num_samples=3000, 
+                           batch_size=50,
+                           save_dir='./')
+```
+使用NormLIME算法将模型预测结果的可解释性可视化。
+NormLIME是利用一定数量的样本来出一个全局的解释。NormLIME会提前计算一定数量的测试样本的LIME结果，然后对相同的特征进行权重的归一化，这样来得到一个全局的输入和输出的关系。
+
+**注意：** 可解释性结果可视化目前只支持分类模型。
+
+### 参数
+>* **img_file** (str): 预测图像路径。
+>* **model** (paddlex.cv.models): paddlex中的模型。
+>* **dataset** (paddlex.datasets): 数据集读取器，默认为None。
+>* **num_samples** (int): LIME用于学习线性模型的采样数，默认为3000。
+>* **batch_size** (int): 预测数据batch大小，默认为50。
+>* **save_dir** (str): 可解释性可视化结果（保存为png格式文件）和中间文件存储路径。 
+
+**注意：** dataset`读取的是一个数据集，该数据集不宜过大，否则计算时间会较长，但应包含所有类别的数据。
+### 使用示例
+> 对预测可解释性结果可视化的过程可参见[代码](https://github.com/PaddlePaddle/PaddleX/blob/develop/tutorials/interpret/normlime.py)。
+

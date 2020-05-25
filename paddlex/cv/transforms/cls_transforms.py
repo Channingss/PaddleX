@@ -103,14 +103,14 @@ class RandomCrop(ClsTransform):
 
     Args:
         crop_size (int): 随机裁剪后重新调整的目标边长。默认为224。
-        lower_scale (float): 裁剪面积相对原面积比例的最小限制。默认为0.88。
+        lower_scale (float): 裁剪面积相对原面积比例的最小限制。默认为0.08。
         lower_ratio (float): 宽变换比例的最小限制。默认为3. / 4。
         upper_ratio (float): 宽变换比例的最大限制。默认为4. / 3。
     """
 
     def __init__(self,
                  crop_size=224,
-                 lower_scale=0.88,
+                 lower_scale=0.08,
                  lower_ratio=3. / 4,
                  upper_ratio=4. / 3):
         self.crop_size = crop_size
@@ -259,8 +259,8 @@ class ResizeByShort(ClsTransform):
         im_short_size = min(im.shape[0], im.shape[1])
         im_long_size = max(im.shape[0], im.shape[1])
         scale = float(self.short_size) / im_short_size
-        if self.max_size > 0 and np.round(
-                scale * im_long_size) > self.max_size:
+        if self.max_size > 0 and np.round(scale *
+                                          im_long_size) > self.max_size:
             scale = float(self.max_size) / float(im_long_size)
         resized_width = int(round(im.shape[1] * scale))
         resized_height = int(round(im.shape[0] * scale))
@@ -455,7 +455,7 @@ class ArrangeClassifier(ClsTransform):
             tuple: 当mode为'train'或'eval'时，返回(im, label)，分别对应图像np.ndarray数据、
                 图像类别id；当mode为'test'或'quant'时，返回(im, )，对应图像np.ndarray数据。
         """
-        im = permute(im, False)
+        im = permute(im, False).astype('float32')
         if self.mode == 'train' or self.mode == 'eval':
             outputs = (im, label)
         else:
