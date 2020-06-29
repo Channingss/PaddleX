@@ -92,12 +92,9 @@ class Normalize : public Transform {
 
 /*
  * @brief
- * This class execute resize by short operation on image matrix. At first, it
- * resizes
- * the short side of image matrix to specified length. Accordingly, the long
- * side
- * will be resized in the same proportion. If new length of long side exceeds
- * max
+ * This class execute resize by short operation on image matrix. At first, it resizes
+ * the short side of image matrix to specified length. Accordingly, the long side
+ * will be resized in the same proportion. If new length of long side exceeds max
  * size, the long size will be resized to max size, and the short size will be
  * resized in the same proportion
  * */
@@ -121,10 +118,8 @@ class ResizeByShort : public Transform {
 
 /*
  * @brief
- * This class execute resize by long operation on image matrix. At first, it
- * resizes
- * the long side of image matrix to specified length. Accordingly, the short
- * side
+ * This class execute resize by long operation on image matrix. At first, it resizes
+ * the long side of image matrix to specified length. Accordingly, the short side
  * will be resized in the same proportion.
  * */
 class ResizeByLong : public Transform {
@@ -140,8 +135,7 @@ class ResizeByLong : public Transform {
 
 /*
  * @brief
- * This class execute resize operation on image matrix. It resizes width and
- * height
+ * This class execute resize operation on image matrix. It resizes width and height
  * to specified length.
  * */
 class Resize : public Transform {
