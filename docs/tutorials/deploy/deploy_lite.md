@@ -19,7 +19,6 @@ pip install paddlelite
 **注意：由于PaddleX代码的持续更新，版本低于1.0.0的模型暂时无法直接用于预测部署，参考[模型版本升级](./upgrade_version.md)对模型版本进行升级。**
 
 ## step 3. 将inference模型转换成PaddleLite模型
-https://github.com/PaddlePaddle/PaddleX.git
 
 ```
 python /path/to/PaddleX/deploy/lite/export_lite.py --model_dir /path/to/inference_model --save_file /path/to/lite_model --place place/to/run
@@ -43,7 +42,7 @@ python /path/to/PaddleX/deploy/lite/export_lite.py --model_dir /path/to/inferenc
 
 #### 4.2.1 使用
 
-- 打开Android Studio，在"Welcome to Android Studio"窗口点击"Open an existing Android Studio project"，在弹出的路径选择窗口中进入""目录，然后点击右下角的"Open"按钮，导入工程`/path/to/PaddleX/deploy/lite/demo/`
+- 打开Android Studio，在"Welcome to Android Studio"窗口点击"Open an existing Android Studio project"，在弹出的路径选择窗口中进入""目录，然后点击右下角的"Open"按钮，导入工程`/path/to/PaddleX/deploy/lite/android/demo`
 - 通过USB连接Android手机或开发板；
 - 载入工程后，点击菜单栏的Run->Run 'App'按钮，在弹出的"Select Deployment Target"窗口选择已经连接的Android设备，然后点击"OK"按钮；
 
@@ -170,7 +169,7 @@ com.baidu.paddlex.postprocess.SegResult.Mask
 
 #### 4.3.4 SDK二次开发
 
-- 打开Android Studio新建项目(或加载已有项目)。点击菜单File->New->Import Module，导入工程`/path/to/PaddleX/deploy/lite/SDK/`, Project视图会新增名为sdk的module
+- 打开Android Studio新建项目(或加载已有项目)。点击菜单File->New->Import Module，导入工程`/path/to/PaddleX/deploy/lite/android/sdk`, Project视图会新增名为sdk的module
 - 在app的build.grade里面添加依赖:
  ```
   dependencies {
@@ -178,8 +177,8 @@ com.baidu.paddlex.postprocess.SegResult.Mask
   }
  ```
 - 源代码位于/sdk/main/java/下，可进行二次开发。
-- 可手动升级Paddle-Lite的预测库版本:
-> 参考[Paddle-Lite文档](https://paddle-lite.readthedocs.io/zh/latest/index.html)，编译Android预测库，编译最终产物位于 build.lite.xxx.xxx.xxx 下的 inference_lite_lib.xxx.xxx
-> 替换jar文件：将生成的build.lite.android.xxx.gcc/inference_lite_lib.android.xxx/java/jar/PaddlePredictor.jar替换sdk中的sdk/libs/PaddlePredictor.jar
-> 替换arm64-v8a jni库文件：将生成build.lite.android.armv8.gcc/inference_lite_lib.android.armv8/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/arm64-v8a/libpaddle_lite_jni.so
-> 替换armeabi-v7a jni库文件：将生成的build.lite.android.armv7.gcc/inference_lite_lib.android.armv7/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/armeabi-v7a/libpaddle_lite_jni.so.
+- SDK和Paddle-Lite是解耦的关系，如有需求，可手动升级Paddle-Lite的预测库版本:
+> - 参考[Paddle-Lite文档](https://paddle-lite.readthedocs.io/zh/latest/index.html)，编译Android预测库，编译最终产物位于 build.lite.xxx.xxx.xxx 下的 inference_lite_lib.xxx.xxx
+> - 替换jar文件：将生成的build.lite.android.xxx.gcc/inference_lite_lib.android.xxx/java/jar/PaddlePredictor.jar替换sdk中的sdk/libs/PaddlePredictor.jar
+> - 替换arm64-v8a jni库文件：将生成build.lite.android.armv8.gcc/inference_lite_lib.android.armv8/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/arm64-v8a/libpaddle_lite_jni.so
+> - 替换armeabi-v7a jni库文件：将生成的build.lite.android.armv7.gcc/inference_lite_lib.android.armv7/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/armeabi-v7a/libpaddle_lite_jni.so.
