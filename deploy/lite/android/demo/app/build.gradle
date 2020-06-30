@@ -65,7 +65,7 @@ task downloadAndExtractPaddleXAndroidSdk(type: DefaultTask) {
 
 preBuild.dependsOn downloadAndExtractPaddleXAndroidSdk
 
-def paddleXLiteModel = 'https://bj.bcebos.com/paddlex/deploy/lite/classifier.tar.gz'
+def paddleXLiteModel = 'https://bj.bcebos.com/paddlex/deploy/lite/mobilenetv2_imagenet_lite2.6.1.tar.gz'
 task downloadAndExtractPaddleXLiteModel(type: DefaultTask) {
     doFirst {
         println "Downloading and extracting PaddleX Android SDK"}
@@ -104,7 +104,15 @@ task downloadAndExtractPaddleXLiteModel(type: DefaultTask) {
                 into "src/main/assets/config/"
             }
         }
+        // Copy config file model.yml
+        if (!file("src/main/assets/images/test.jpg").exists()) {
+            copy {
+                from "cache/${cacheName}/test.jpg"
+                into "src/main/assets/images/"
+            }
+        }
     }
+
 }
 
 preBuild.dependsOn downloadAndExtractPaddleXLiteModel
