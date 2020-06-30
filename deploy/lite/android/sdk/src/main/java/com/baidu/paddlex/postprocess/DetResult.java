@@ -18,8 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DetResult extends Result {
-    protected List<Box> boxes = new ArrayList<Box>();
     static String type = "det";
+    protected List<Box> boxes = new ArrayList<Box>();
+
+    public List<Box> getBoxes() {
+        return boxes;
+    }
+
+    public void setBoxes(List<Box> boxes) {
+        this.boxes = boxes;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
 
     public class Box {
         protected int category_id;
@@ -58,19 +71,6 @@ public class DetResult extends Result {
         public void setCoordinate(float[] coordinate) {
             this.coordinate = coordinate;
         }
-    }
-
-    public List<Box> getBoxes() {
-        return boxes;
-    }
-
-    public void setBoxes(List<Box> boxes) {
-        this.boxes = boxes;
-    }
-
-    @Override
-    public String getType() {
-        return type;
     }
 
 }

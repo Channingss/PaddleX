@@ -14,15 +14,15 @@
 
 package com.baidu.paddlex.visual;
 
-import com.baidu.paddlex.postprocess.DetResult;
-import com.baidu.paddlex.postprocess.SegResult;
-import com.baidu.paddlex.preprocess.ImageBlob;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+
+import com.baidu.paddlex.postprocess.DetResult;
+import com.baidu.paddlex.postprocess.SegResult;
+import com.baidu.paddlex.preprocess.ImageBlob;
 
 import java.util.ArrayList;
 import java.util.ListIterator;
@@ -33,7 +33,6 @@ public class Visualize {
     protected static final String TAG = Visualize.class.getSimpleName();
     protected float detectConfidenceThreshold = (float) 0.5;
     protected int[] colormap;
-
     protected int[] generateColorMap(int num_class) {
         colormap = new int[num_class];
         for (int i = 0; i < num_class; i++) {
@@ -72,15 +71,12 @@ public class Visualize {
 
     public Bitmap draw(DetResult result, Bitmap visualizeImage) {
         Canvas canvas = new Canvas(visualizeImage);
-
         Paint rectPaint = new Paint();
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setStrokeWidth(2);
-
         Paint txtPaint = new Paint();
         txtPaint.setTextSize(15);
         txtPaint.setAntiAlias(true);
-
         for (DetResult.Box box : result.getBoxes()) {
             if (box.getScore() < detectConfidenceThreshold) {
                 continue;
@@ -89,7 +85,7 @@ public class Visualize {
             rectPaint.setColor(color);
             txtPaint.setColor(color);
             canvas.drawRect(box.getCoordinate()[0], box.getCoordinate()[1], box.getCoordinate()[2], box.getCoordinate()[3], rectPaint);
-            canvas.drawText(box.getCategory() + ":" + String.valueOf(box.getScore()).substring(0,4), (int) box.getCoordinate()[0] + 2, (int) box.getCoordinate()[1] + 2, txtPaint);
+            canvas.drawText(box.getCategory() + ":" + String.valueOf(box.getScore()).substring(0, 4), (int) box.getCoordinate()[0] + 2, (int) box.getCoordinate()[1] + 2, txtPaint);
         }
         return visualizeImage;
     }
@@ -100,8 +96,7 @@ public class Visualize {
             color_data[i] = colormap[(int) result.getMask().getLabelData()[i]];
         }
         Bitmap maskImage = Bitmap.createBitmap(color_data, (int) result.getMask().getLabelShape()[2], (int) result.getMask().getLabelShape()[1], visualizeImage.getConfig());
-
-        ListIterator<Map.Entry<String, int[]>> reverseReshapeInfo = new ArrayList<Map.Entry<String, int[]>>(imageBlob.reshape_info_.entrySet()).listIterator(imageBlob.reshape_info_.size());
+        ListIterator<Map.Entry<String, int[]>> reverseReshapeInfo = new ArrayList<Map.Entry<String, int[]>>(imageBlob.getReshapeInfo().entrySet()).listIterator(imageBlob.getReshapeInfo().size());
         while (reverseReshapeInfo.hasPrevious()) {
             Map.Entry<String, int[]> entry = reverseReshapeInfo.previous();
             if (entry.getKey().equalsIgnoreCase("padding")) {
@@ -111,7 +106,6 @@ public class Visualize {
             }
             Log.i(TAG, "postprocess operator: " + entry.getKey());
         }
-
         Bitmap bmOverlay = Bitmap.createBitmap(maskImage.getWidth(), maskImage.getHeight(), maskImage.getConfig());
         Canvas canvas = new Canvas(bmOverlay);
         Paint paint = new Paint();

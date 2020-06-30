@@ -19,6 +19,7 @@ pip install paddlelite
 **注意：由于PaddleX代码的持续更新，版本低于1.0.0的模型暂时无法直接用于预测部署，参考[模型版本升级](./upgrade_version.md)对模型版本进行升级。**
 
 ## step 3. 将inference模型转换成PaddleLite模型
+https://github.com/PaddlePaddle/PaddleX.git
 
 ```
 python /path/to/PaddleX/deploy/lite/export_lite.py --model_dir /path/to/inference_model --save_file /path/to/lite_model --place place/to/run
@@ -34,14 +35,15 @@ python /path/to/PaddleX/deploy/lite/export_lite.py --model_dir /path/to/inferenc
 ## step 4. 移动端（Android）预测
 
 ### 4.1 要求
-Android Studio 3.4
-Android手机或开发版，NPU的功能暂时只在nova5、mate30和mate30 5G上进行了测试，用户可自行尝试其它搭载了麒麟810和990芯片的华为手机（如nova5i pro、mate30 pro、荣耀v30，mate40或p40，且需要将系统更新到最新版）；
+
+- Android Studio 3.4
+- Android手机或开发版，NPU的功能暂时只在nova5、mate30和mate30 5G上进行了测试，用户可自行尝试其它搭载了麒麟810和990芯片的华为手机（如nova5i pro、mate30 pro、荣耀v30，mate40或p40，且需要将系统更新到最新版）；
 
 ### 4.2 分类Demo
 
 #### 4.2.1 使用
 
-- 打开Android Studio，在"Welcome to Android Studio"窗口点击"Open an existing Android Studio project"，在弹出的路径选择窗口中进入""目录，然后点击右下角的"Open"按钮即可导入工程
+- 打开Android Studio，在"Welcome to Android Studio"窗口点击"Open an existing Android Studio project"，在弹出的路径选择窗口中进入""目录，然后点击右下角的"Open"按钮，导入工程`/path/to/PaddleX/deploy/lite/demo/`
 - 通过USB连接Android手机或开发板；
 - 载入工程后，点击菜单栏的Run->Run 'App'按钮，在弹出的"Select Deployment Target"窗口选择已经连接的Android设备，然后点击"OK"按钮；
 
@@ -161,7 +163,23 @@ com.baidu.paddlex.postprocess.SegResult
 com.baidu.paddlex.postprocess.SegResult.Mask
 ```
 ##### Fields
-> * **scoreData** (float[]): 模型预测在各个类别的置信度，长度为batch$\times\$numClass$\times\$H$\times\$W
-> * **scoreShape** (long[4]): scoreData的shape信息，[batch,numClass,H,W]
-> * **labelData** (long[]): 模型预测置信度最高的label，长度为batch$\times\$H$\times\$W$\times\$1
-> * **labelShape** (long[4]): labelData的shape信息，[batch,H,W,1]
+> * **scoreData** (float[]): 模型预测在各个类别的置信度，长度为numClass$\times\$H$\times\$W
+> * **scoreShape** (long[4]): scoreData的shape信息，[1,numClass,H,W]
+> * **labelData** (long[]): 模型预测置信度最高的label，长度为`H$\times\$W$\times\$1
+> * **labelShape** (long[4]): labelData的shape信息，[1,H,W,1]
+
+#### 4.3.4 SDK二次开发
+
+- 打开Android Studio新建项目(或加载已有项目)。点击菜单File->New->Import Module，导入工程`/path/to/PaddleX/deploy/lite/SDK/`, Project视图会新增名为sdk的module
+- 在app的build.grade里面添加依赖:
+ ```
+  dependencies {
+      implementation project(':sdk')
+  }
+ ```
+- 源代码位于/sdk/main/java/下，可进行二次开发。
+- 可手动升级Paddle-Lite的预测库版本:
+> 参考[Paddle-Lite文档](https://paddle-lite.readthedocs.io/zh/latest/index.html)，编译Android预测库，编译最终产物位于 build.lite.xxx.xxx.xxx 下的 inference_lite_lib.xxx.xxx
+> 替换jar文件：将生成的build.lite.android.xxx.gcc/inference_lite_lib.android.xxx/java/jar/PaddlePredictor.jar替换sdk中的sdk/libs/PaddlePredictor.jar
+> 替换arm64-v8a jni库文件：将生成build.lite.android.armv8.gcc/inference_lite_lib.android.armv8/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/arm64-v8a/libpaddle_lite_jni.so
+> 替换armeabi-v7a jni库文件：将生成的build.lite.android.armv7.gcc/inference_lite_lib.android.armv7/java/so/libpaddle_lite_jni.so库替换sdk中的sdk/src/main/jniLibs/armeabi-v7a/libpaddle_lite_jni.so.

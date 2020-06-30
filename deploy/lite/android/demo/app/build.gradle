@@ -35,7 +35,6 @@ def paddlexAndroidSdk = 'https://bj.bcebos.com/paddlex/deploy/lite/paddlex.tar.g
 task downloadAndExtractPaddleXAndroidSdk(type: DefaultTask) {
     doFirst {
         println "Downloading and extracting PaddleX Android SDK"}
-
     doLast {
         // Prepare cache folder for sdk
         if (!file("cache").exists()) {
@@ -50,12 +49,10 @@ task downloadAndExtractPaddleXAndroidSdk(type: DefaultTask) {
             ant.get(src: paddlexAndroidSdk, dest: file("cache/${cacheName}.tar.gz"))
         }
         // Unpack sdk
-
         copy {
             from tarTree("cache/${cacheName}.tar.gz")
             into "cache/${cacheName}"
         }
-
         // Copy sdk
         if (!file("libs/paddlex.aar").exists()) {
             copy {
@@ -86,8 +83,8 @@ task downloadAndExtractPaddleXLiteModel(type: DefaultTask) {
         if (!file("cache/${cacheName}.tar.gz").exists()) {
             ant.get(src: paddleXLiteModel, dest: file("cache/${cacheName}.tar.gz"))
         }
-        // Unpack model
 
+        // Unpack model
         copy {
             from tarTree("cache/${cacheName}.tar.gz")
             into "cache/${cacheName}"

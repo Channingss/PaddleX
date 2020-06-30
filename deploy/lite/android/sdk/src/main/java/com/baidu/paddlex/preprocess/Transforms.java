@@ -63,7 +63,6 @@ public class Transforms {
                 normalize.transformsMode = transformsMode;
                 normalize.mean = info.get("mean").toArray(new Double[info.get("mean").size()]);
                 normalize.std = info.get("std").toArray(new Double[info.get("std").size()]);
-                ;
                 transform_ops.add(normalize);
             } else if (transform_op.containsKey("Resize")) {
                 HashMap info = (HashMap) transform_op.get("Resize");
@@ -97,17 +96,12 @@ public class Transforms {
     }
 
     public ImageBlob run(Bitmap inputImage, ImageBlob imageBlob) {
-        imageBlob.ori_im_size_[2] = inputImage.getHeight();
-        imageBlob.ori_im_size_[3] = inputImage.getWidth();
-        imageBlob.new_im_size_[2] = inputImage.getHeight();
-        imageBlob.new_im_size_[3] = inputImage.getWidth();
+        imageBlob.setOriImageSize(inputImage.getHeight(),2);
+        imageBlob.setOriImageSize(inputImage.getWidth(),3);
+        imageBlob.setNewImageSize(inputImage.getHeight(),2);
+        imageBlob.setNewImageSize(inputImage.getWidth(),3);
         for (transform_op op : transform_ops) {
             inputImage = op.run(inputImage, imageBlob);
-        }
-        float avg = 0;
-        for (int i = 0; i < imageBlob.im_data_.length; i = i + 1) {
-            avg += imageBlob.im_data_[i];
-
         }
         return imageBlob;
     }
@@ -117,32 +111,31 @@ public class Transforms {
             return inputImage;
         }
 
-        ;
     }
 
     private class Resize extends transform_op {
-        public int height;
-        public int width;
+        private int height;
+        private int width;
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int origin_w = inputImage.getWidth();
             int origin_h = inputImage.getHeight();
-            data.reshape_info_.put("resize", new int[]{origin_w, origin_h});
+            imageBlob.getReshapeInfo().put("resize", new int[]{origin_w, origin_h});
             inputImage = Bitmap.createScaledBitmap(inputImage, width, height, true);
-            data.new_im_size_[2] = inputImage.getHeight();
-            data.new_im_size_[3] = inputImage.getWidth();
+            imageBlob.setNewImageSize(inputImage.getHeight(),2);
+            imageBlob.setNewImageSize(inputImage.getWidth(),3);
             return inputImage;
         }
     }
 
     private class ResizeByShort extends transform_op {
-        public int max_size;
-        public int short_size;
+        private int max_size;
+        private int short_size;
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int origin_w = inputImage.getWidth();
             int origin_h = inputImage.getHeight();
-            data.reshape_info_.put("resize", new int[]{origin_w, origin_h});
+            imageBlob.getReshapeInfo().put("resize", new int[]{origin_w, origin_h});
             int im_size_max = Math.max(origin_w, origin_h);
             int im_size_min = Math.min(origin_w, origin_h);
             float scale = (float) (short_size) / (float) (im_size_min);
@@ -154,40 +147,37 @@ public class Transforms {
             int width = Math.round(scale * origin_w);
             int height = Math.round(scale * origin_h);
             inputImage = Bitmap.createScaledBitmap(inputImage, width, height, true);
-
-            data.new_im_size_[2] = inputImage.getHeight();
-            data.new_im_size_[3] = inputImage.getWidth();
-            data.scale = scale;
+            imageBlob.setNewImageSize(inputImage.getHeight(),2);
+            imageBlob.setNewImageSize(inputImage.getWidth(),3);
+            imageBlob.setScale(scale);
             return inputImage;
         }
     }
 
     private class ResizeByLong extends transform_op {
-        public int long_size;
+        private int long_size;
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int origin_w = inputImage.getWidth();
             int origin_h = inputImage.getHeight();
-            data.reshape_info_.put("resize", new int[]{origin_w, origin_h});
-
+            imageBlob.getReshapeInfo().put("resize", new int[]{origin_w, origin_h});
             int im_size_max = Math.max(origin_w, origin_h);
             float scale = (float) (long_size) / (float) (im_size_max);
             int width = Math.round(scale * origin_w);
             int height = Math.round(scale * origin_h);
             inputImage = Bitmap.createScaledBitmap(inputImage, width, height, true);
-
-            data.new_im_size_[2] = inputImage.getHeight();
-            data.new_im_size_[3] = inputImage.getWidth();
-            data.scale = scale;
+            imageBlob.setNewImageSize(inputImage.getHeight(),2);
+            imageBlob.setNewImageSize(inputImage.getWidth(),3);
+            imageBlob.setScale(scale);
             return inputImage;
         }
     }
 
     private class CenterCrop extends transform_op {
-        public int cropHeight;
-        public int cropWidth;
+        private int cropHeight;
+        private int cropWidth;
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int origin_w = inputImage.getWidth();
             int origin_h = inputImage.getHeight();
             if (origin_h < cropHeight || origin_w < cropWidth) {
@@ -199,28 +189,27 @@ public class Transforms {
                     (float) cropHeight / origin_h);
             m.setScale(scale, scale);
             int srcX, srcY;
-            srcX = (int) ((origin_w - cropWidth) / 2);
-            srcY = (int) ((origin_h - cropHeight) / 2);
+            srcX = (origin_w - cropWidth) / 2;
+            srcY = (origin_h - cropHeight) / 2;
             srcX = Math.max(Math.min(srcX, origin_w - cropWidth), 0);
             srcY = Math.max(Math.min(srcY, origin_h - cropHeight), 0);
             inputImage = Bitmap.createBitmap(inputImage, srcX, srcY, cropWidth, cropHeight);
-
-            data.new_im_size_[2] = inputImage.getHeight();
-            data.new_im_size_[3] = inputImage.getWidth();
-
+            imageBlob.setNewImageSize(inputImage.getHeight(),2);
+            imageBlob.setNewImageSize(inputImage.getWidth(),3);
+            imageBlob.setScale(scale);
             return inputImage;
         }
     }
 
     private class Normalize extends transform_op {
-        String transformsMode = "RGB";
+        private String transformsMode = "RGB";
         private Double[] mean = new Double[3];
         private Double[] std = new Double[3];
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int w = inputImage.getWidth();
             int h = inputImage.getHeight();
-            data.im_data_ = new float[w * h * 3];
+            imageBlob.setImageData(new float[w * h * 3]);
             int[] channelIdx = null;
             if (transformsMode.equalsIgnoreCase("RGB")) {
                 channelIdx = new int[]{0, 1, 2};
@@ -231,15 +220,14 @@ public class Transforms {
             } else {
                 Log.e(TAG, "unknown color format " + transformsMode + ", only RGB and BGR color format is " + "supported!");
             }
-
             int[] channelStride = new int[]{w * h, w * h * 2};
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
                     int color = inputImage.getPixel(x, y);
                     float[] rgb = new float[]{(float) red(color), (float) green(color), (float) blue(color)};
-                    data.im_data_[y * w + x] = (rgb[channelIdx[0]] / 255 - mean[0].floatValue()) / (std[0].floatValue());
-                    data.im_data_[y * w + x + channelStride[0]] = (rgb[channelIdx[1]] / 255 - mean[1].floatValue()) / std[1].floatValue();
-                    data.im_data_[y * w + x + channelStride[1]] = (rgb[channelIdx[2]] / 255 - mean[2].floatValue()) / std[2].floatValue();
+                    imageBlob.getImageData()[y * w + x] = (rgb[channelIdx[0]] / 255 - mean[0].floatValue()) / (std[0].floatValue());
+                    imageBlob.getImageData()[y * w + x + channelStride[0]] = (rgb[channelIdx[1]] / 255 - mean[1].floatValue()) / std[1].floatValue();
+                    imageBlob.getImageData()[y * w + x + channelStride[1]] = (rgb[channelIdx[2]] / 255 - mean[2].floatValue()) / std[2].floatValue();
                 }
             }
             return inputImage;
@@ -247,17 +235,16 @@ public class Transforms {
     }
 
     private class Padding extends transform_op {
-        public double width;
-        public double height;
-        public double coarsest_stride;
+        private double width;
+        private double height;
+        private double coarsest_stride;
 
-        public Bitmap run(Bitmap inputImage, ImageBlob data) {
+        public Bitmap run(Bitmap inputImage, ImageBlob imageBlob) {
             int origin_w = inputImage.getWidth();
             int origin_h = inputImage.getHeight();
-            data.reshape_info_.put("padding", new int[]{origin_w, origin_h});
+            imageBlob.getReshapeInfo().put("padding", new int[]{origin_w, origin_h});
             double padding_w = 0;
             double padding_h = 0;
-
             if (width > 1 & height > 1) {
                 padding_w = width;
                 padding_h = height;
@@ -265,13 +252,12 @@ public class Transforms {
                 padding_h = Math.ceil(origin_h / coarsest_stride) * coarsest_stride;
                 padding_w = Math.ceil(origin_w / coarsest_stride) * coarsest_stride;
             }
-
             Bitmap outputImage = Bitmap.createBitmap((int) padding_w, (int) padding_h, inputImage.getConfig());
             Canvas canvas = new Canvas(outputImage);
             canvas.drawColor(Color.rgb(127, 127, 127));
             canvas.drawBitmap(inputImage, 0, 0, null);
-            data.new_im_size_[2] = outputImage.getHeight();
-            data.new_im_size_[3] = outputImage.getWidth();
+            imageBlob.setNewImageSize(inputImage.getHeight(),2);
+            imageBlob.setNewImageSize(inputImage.getWidth(),3);
             return outputImage;
         }
     }

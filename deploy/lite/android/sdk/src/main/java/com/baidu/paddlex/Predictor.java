@@ -17,8 +17,7 @@ package com.baidu.paddlex;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
-import java.io.File;
-import java.util.Date;
+
 import com.baidu.paddle.lite.MobileConfig;
 import com.baidu.paddle.lite.PaddlePredictor;
 import com.baidu.paddle.lite.PowerMode;
@@ -31,28 +30,29 @@ import com.baidu.paddlex.postprocess.SegResult;
 import com.baidu.paddlex.preprocess.ImageBlob;
 import com.baidu.paddlex.preprocess.Transforms;
 
+import java.io.File;
+import java.util.Date;
 
 public class Predictor {
     private static final String TAG = Predictor.class.getSimpleName();
-
+    protected Context appCtx = null;
     protected boolean isLoaded = false;
     protected int warmupIterNum = 0;
     protected int inferIterNum = 1;
-    protected Context appCtx = null;
     protected int cpuThreadNum = 1;
     protected String cpuPowerMode = "LITE_POWER_HIGH";
-    protected ImageBlob imageBlob = new ImageBlob();
     protected String modelPath = "";
     protected String modelName = "";
-    protected Result result;
-    protected PaddlePredictor paddlePredictor = null;
-    protected Bitmap inputImage;
     protected float inferenceTime = 0;
-    protected String outputResult = "";
     protected float preprocessTime = 0;
     protected float postprocessTime = 0;
-    protected ConfigParser configParser = new ConfigParser();
+    protected ImageBlob imageBlob = new ImageBlob();
+    protected PaddlePredictor paddlePredictor = null;
     protected Transforms transforms = new Transforms();
+    protected Bitmap inputImage;
+    protected ConfigParser configParser = new ConfigParser();
+    protected Result result;
+
     public Predictor() {
         super();
     }
@@ -76,7 +76,6 @@ public class Predictor {
         this.configParser = configParser;
         init(appCtx, configParser.getModelPath(), configParser.getCpuThreadNum(), configParser.getCpuPowerMode());
         transforms.load_config(configParser.getTransformsList(), configParser.getTransformsMode());
-
         if (!isLoaded()) {
             return false;
         }
@@ -99,39 +98,37 @@ public class Predictor {
     }
 
     private boolean runModel(DetResult detReult) {
+        // set input shape & data
         Tensor imTensor = getInput(0);
-        imTensor.resize(imageBlob.new_im_size_);
-        imTensor.setData(imageBlob.im_data_);
+        imTensor.resize(imageBlob.getNewImageSize());
+        imTensor.setData(imageBlob.getImageData());
         if (configParser.getModel().equalsIgnoreCase("YOLOv3")) {
             Tensor imSizeTensor = getInput(1);
             long[] imSize = {1, 2};
             imSizeTensor.resize(imSize);
-            imSizeTensor.setData(new int[]{(int) imageBlob.ori_im_size_[2], (int) imageBlob.ori_im_size_[3]});
+            imSizeTensor.setData(new int[]{(int) imageBlob.getOriImageSize()[2], (int) imageBlob.getOriImageSize()[3]});
         } else if (configParser.getModel().equalsIgnoreCase("FasterRCNN")) {
             Tensor imInfoTensor = getInput(1);
             long[] imInfo = {1, 3};
             imInfoTensor.resize(imInfo);
-            imInfoTensor.setData(new float[]{imageBlob.new_im_size_[2], imageBlob.new_im_size_[3], imageBlob.scale});
+            imInfoTensor.setData(new float[]{imageBlob.getNewImageSize()[2], imageBlob.getNewImageSize()[3], imageBlob.getScale()});
 
             Tensor imShapeTensor = getInput(2);
             long[] imShape = {1, 3};
             imShapeTensor.resize(imShape);
-            imShapeTensor.setData(new float[]{imageBlob.ori_im_size_[2], imageBlob.ori_im_size_[3], 1});
+            imShapeTensor.setData(new float[]{imageBlob.getOriImageSize()[2], imageBlob.getOriImageSize()[3], 1});
         }
-
+        // run model
         runModel();
-
+        // Fetch output tensor
         Tensor outputTensor = getOutput(0);
-
         float[] output = outputTensor.getFloatData();
-        long outputShape[] = outputTensor.shape();
+        long[] outputShape = outputTensor.shape();
         long outputSize = 1;
-
         for (long s : outputShape) {
             outputSize *= s;
-            Log.i(TAG, "****" + String.valueOf(s));
+            Log.i(TAG, "****" + s);
         }
-
         int num_boxes = (int) (outputSize / 6);
         for (int i = 0; i < num_boxes; i++) {
             DetResult.Box box = detReult.new Box();
@@ -147,28 +144,24 @@ public class Predictor {
             detReult.getBoxes().add(box);
         }
         return true;
-
     }
 
     private boolean runModel(SegResult segReult) {
+        // set input shape & data
         Tensor imTensor = getInput(0);
-        imTensor.resize(imageBlob.new_im_size_);
-        imTensor.setData(imageBlob.im_data_);
-        for (long shape : imageBlob.new_im_size_) {
-            Log.i(TAG, "input shape:" + shape);
-
-        }
+        imTensor.resize(imageBlob.getNewImageSize());
+        imTensor.setData(imageBlob.getImageData());
+        // run model
         runModel();
-
         Tensor labelTensor = getOutput(0);
-
+        // Fetch output tensor
         long[] labelData = labelTensor.getLongData();
         segReult.getMask().setLabelShape(labelTensor.shape());
         long labelSize = 1;
         for (long s : segReult.getMask().getLabelShape()) {
             labelSize *= s;
         }
-        segReult.getMask().setLabelData( new long[(int) labelSize]);
+        segReult.getMask().setLabelData(new long[(int) labelSize]);
 
         for (int i = 0; i < labelData.length; i++) {
             segReult.getMask().getLabelData()[i] = labelData[i];
@@ -188,57 +181,41 @@ public class Predictor {
     }
 
     private boolean runModel(ClsResult clsReult) {
-        // set input shape
+        // set input shape & data
         Tensor imTensor = getInput(0);
-        imTensor.resize(imageBlob.new_im_size_);
-        imTensor.setData(imageBlob.im_data_);
-
+        imTensor.resize(imageBlob.getNewImageSize());
+        imTensor.setData(imageBlob.getImageData());
+        // run model
         runModel();
-
         // Fetch output tensor
         Tensor outputTensor = getOutput(0);
-        long outputShape[] = outputTensor.shape();
+        long[] outputShape = outputTensor.shape();
         long outputSize = 1;
         for (long s : outputShape) {
             outputSize *= s;
         }
-
-        int[] max_index = new int[3]; // Top3 indices
-        float[] max_num = new float[3]; // Top3 scores
+        int max_index = 0; // Top3 indices
+        float max_score = 0; // Top3 scores
         for (int i = 0; i < outputSize; i++) {
             float tmp = outputTensor.getFloatData()[i];
-            int tmp_index = i;
-            for (int j = 0; j < 3; j++) {
-                if (tmp > max_num[j]) {
-                    tmp_index += max_index[j];
-                    max_index[j] = tmp_index - max_index[j];
-                    tmp_index -= max_index[j];
-                    tmp += max_num[j];
-                    max_num[j] = tmp - max_num[j];
-                    tmp -= max_num[j];
-                }
+            if (tmp > max_score) {
+                max_index = i;
+                max_score = tmp;
             }
         }
-
-        clsReult.setCategoryId(max_index[0]);
-        clsReult.setCategory(configParser.getLabeList().get(max_index[0]));
-        clsReult.setScore(max_num[0]);
-        Log.i(TAG, outputResult);
-        if (configParser.getLabeList().size() > 0) {
-            outputResult = "Top1: " + configParser.getLabeList().get(max_index[0]) + " - " + String.format("%.3f", max_num[0]);
-        }
+        clsReult.setCategoryId(max_index);
+        clsReult.setCategory(configParser.getLabeList().get(max_index));
+        clsReult.setScore(max_score);
         return true;
     }
 
     private boolean loadModel(String modelPath, int cpuThreadNum, String cpuPowerMode) {
         // release model if exists
         releaseModel();
-
         // load model
         if (modelPath.isEmpty()) {
             return false;
         }
-
         String realPath = modelPath;
         if (!modelPath.substring(0, 1).equals("/")) {
             // read model files from custom path if the first character of mode path is '/'
@@ -247,15 +224,12 @@ public class Predictor {
             realPath = appCtx.getCacheDir() + File.separator + modelFileName;
             Utils.copyFileFromAssets(appCtx, modelPath, realPath);
         }
-
         if (realPath.isEmpty()) {
             return false;
         }
-
         MobileConfig config = new MobileConfig();
         config.setModelFromFile(realPath);
         config.setThreads(cpuThreadNum);
-
         if (cpuPowerMode.equalsIgnoreCase("LITE_POWER_HIGH")) {
             config.setPowerMode(PowerMode.LITE_POWER_HIGH);
         } else if (cpuPowerMode.equalsIgnoreCase("LITE_POWER_LOW")) {
@@ -284,12 +258,10 @@ public class Predictor {
         if (!isLoaded()) {
             return false;
         }
-
         // warm up
         for (int i = 0; i < warmupIterNum; i++) {
             paddlePredictor.run();
         }
-
         Date start = new Date();
         // inference
         for (int i = 0; i < inferIterNum; i++) {
@@ -297,9 +269,7 @@ public class Predictor {
         }
         Date end = new Date();
         inferenceTime = (end.getTime() - start.getTime()) / (float) inferIterNum;
-
         return true;
-
     }
 
     public void releaseModel() {
@@ -310,7 +280,6 @@ public class Predictor {
         modelPath = "";
         modelName = "";
     }
-
 
     public boolean isLoaded() {
         return paddlePredictor != null && isLoaded;
@@ -390,14 +359,6 @@ public class Predictor {
 
     public void setPaddlePredictor(PaddlePredictor paddlePredictor) {
         this.paddlePredictor = paddlePredictor;
-    }
-
-    public String getOutputResult() {
-        return outputResult;
-    }
-
-    public void setOutputResult(String outputResult) {
-        this.outputResult = outputResult;
     }
 
     public float getPreprocessTime() {

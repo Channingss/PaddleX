@@ -47,6 +47,7 @@ import android.widget.Toast;
 
 import com.baidu.paddlex.Predictor;
 import com.baidu.paddlex.config.ConfigParser;
+import com.baidu.paddlex.postprocess.ClsResult;
 import com.baidu.paddlex.postprocess.DetResult;
 import com.baidu.paddlex.postprocess.SegResult;
 import com.baidu.paddlex.visual.Visualize;
@@ -72,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
     protected Handler receiver = null; // receive messages from worker thread
     protected Handler sender = null; // send command to worker thread
     protected HandlerThread worker = null; // worker thread to load&run model
-
 
     protected TextView tvInputSetting;
     protected ImageView ivInputImage;
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
         worker = new HandlerThread("Predictor Worker");
         worker.start();
         sender = new Handler(worker.getLooper()) {
@@ -148,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
         tvInputSetting = findViewById(R.id.tv_input_setting);
         ivInputImage = findViewById(R.id.iv_input_image);
         predictButton = findViewById(R.id.iv_predict_button);
@@ -156,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
         tvOutputResult = findViewById(R.id.tv_output_result);
         tvInputSetting.setMovementMethod(ScrollingMovementMethod.getInstance());
         tvOutputResult.setMovementMethod(ScrollingMovementMethod.getInstance());
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String image_path = sharedPreferences.getString(getString(R.string.IMAGE_PATH_KEY),
                 getString(R.string.IMAGE_PATH_DEFAULT));
@@ -208,7 +205,6 @@ public class MainActivity extends AppCompatActivity {
         Bitmap outputImage;
         if (configParser.getModelType().equalsIgnoreCase("segmenter")) {
             SegResult segResult = predictor.getSegResult();
-
             outputImage = visualize.draw(segResult, predictor.getInputImage(), predictor.getImageBlob());
             if (outputImage != null) {
                 ivInputImage.setImageBitmap(outputImage);
@@ -220,10 +216,14 @@ public class MainActivity extends AppCompatActivity {
                 ivInputImage.setImageBitmap(outputImage);
             }
         } else if (configParser.getModelType().equalsIgnoreCase("classifier")) {
-                ivInputImage.setImageBitmap( predictor.getInputImage());
+            ivInputImage.setImageBitmap( predictor.getInputImage());
+            ClsResult clsResult = predictor.getClsResult();
+            if (configParser.getLabeList().size() > 0) {
+                String outputResult = "Top1: " + clsResult.getCategory() + " - " + String.format("%.3f", clsResult.getScore());
+                tvOutputResult.setText(outputResult);
+                tvOutputResult.scrollTo(0, 0);
+            }
         }
-        tvOutputResult.setText(predictor.getOutputResult());
-        tvOutputResult.scrollTo(0, 0);
     }
 
     public void onImageChanged(Bitmap image) {
@@ -365,7 +365,6 @@ public class MainActivity extends AppCompatActivity {
         settingsChanged |= model_path != configParser.getModelPath();
         String yaml_path = sharedPreferences.getString(getString(R.string.YAML_PATH_KEY),
                 getString(R.string.YAML_PATH_DEFAULT));
-
         settingsChanged |= yaml_path != configParser.getYamlPath();
         int cpu_thread_num = Integer.parseInt(sharedPreferences.getString(getString(R.string.CPU_THREAD_NUM_KEY),
                 getString(R.string.CPU_THREAD_NUM_DEFAULT)));
@@ -376,7 +375,6 @@ public class MainActivity extends AppCompatActivity {
 
         String image_path = sharedPreferences.getString(getString(R.string.IMAGE_PATH_KEY),
                 getString(R.string.IMAGE_PATH_DEFAULT));
-
         testImageChanged |= !image_path.equalsIgnoreCase(testImagePathFromAsset);
         visualize.init(configParser.getNumClasses());
         if (settingsChanged) {
@@ -394,7 +392,6 @@ public class MainActivity extends AppCompatActivity {
             // reload model if configure has been changed
             loadModel();
         }
-
         if (testImageChanged){
             loadTestImageFromAsset(image_path);
         }
@@ -433,5 +430,4 @@ public class MainActivity extends AppCompatActivity {
         worker.quit();
         super.onDestroy();
     }
-
 }
